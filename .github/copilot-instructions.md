@@ -1,60 +1,65 @@
-# Copilot Chat Instructions — ColCommute
+---
+name: copilot-instructions
+description: "Workspace-level guidance for using Copilot Chat and the ADK agents in ColCommute."
+---
 
-Purpose: short guidance for AI assistants working on ColCommute (multi-agent commute orchestration built with Google ADK). Keep suggestions focused, safe, and linked to existing docs.
+# Copilot workspace instructions — ColCommute
 
-## Quick Links
-- Project overview: [README.md](../README.md)
-- Main agent entry: [colCommute/agent.py](../colCommute/agent.py)
-- Orchestrator: [agents/orchestrator.py](../agents/orchestrator.py)
-- Shared LLM config: [core/llm.py](../core/llm.py)
-- Tools: [tools/](../tools/)
+Purpose: Provide a compact, link-first guide for Copilot Chat and contributor workflows when working with the ADK agents in this repo.
 
-## Environment & Key Commands
-- Python: 3.10+
-- Install ADK: `pip install google-adk`
-- Add your API key to `.env`: `GOOGLE_API_KEY=YOUR_GEMINI_API_KEY`
-- Run the agent: `adk run colCommute`
-- Launch web UI: `adk web`
+**Quick Start**
 
-## What AI assistants MAY do
-- Implement and improve agent logic inside `agents/` following existing Agent/TypedDict patterns.
-- Add or extend tools under `tools/` (wrap functions as ADK FunctionTools where applicable).
-- Suggest and implement unit tests in a `tests/` folder (choose pytest or other—document chosen framework).
-- Improve `core/llm.py` and memory handling for safer prompts and schemas.
-- Propose docs or README additions; prefer linking to existing docs rather than duplicating content.
+- Install dependencies: `pip install -r requirements.txt`
+- Create `.env` in the repo root with `GOOGLE_API_KEY` and `DATABASE_URL` (see `colcommute/db/session.py`).
+- Run dev chat: `adk web` (or `adk run colcommute`) and open the printed URL to interact with `root_agent`.
+- Migrations: `python -m alembic -c alembic.ini upgrade head`
 
-## NOT Allowed / Anti-Patterns
-- Do not commit secrets or `.env` with API keys.
-- Do not bypass ADK abstractions (avoid importing private ADK internals).
-- Avoid large structural refactors without tests and maintainer approval.
-- Don’t change deployment or infra settings in CI without an explicit PR and owner approval.
- - Do not add content to empty files. If functionality already exists in the codebase, prefer reusing or extending those files and APIs rather than creating new files or populating placeholders without maintainer approval.
+**Where to look (entry points)**
 
-## Apply-To Globs (recommended)
-```
-agents/**
-colCommute/**
-core/**
-services/**
-tools/**
-```
+- Overview and run commands: [README.md](README.md)
+- Orchestrator / app entry: [colcommute/agent.py](colcommute/agent.py)
+- Ride-matching specialist: [agents/ride_matching.py](agents/ride_matching.py)
+- Tools used by agents: [tools/ride_matching.py](tools/ride_matching.py)
+- LLM config and model hooks: [core/llm.py](core/llm.py)
+- DB models & session: [colcommute/db/models/commute_post.py](colcommute/db/models/commute_post.py) and [colcommute/db/session.py](colcommute/db/session.py)
+- Example migrations: [alembic/versions/20260405_add_origin_place_fields.py](alembic/versions/20260405_add_origin_place_fields.py)
 
-## Code Patterns & Conventions
-- Follow the ADK Agent pattern: typed input/output schemas (TypedDict/Annotated) and explicit `response_schema`.
-- Use `tools/*.py` for side-effects (payments, logging) and wrap them for agent use.
-- Centralize LLM model and key config in `core/llm.py`.
+**How to ask Copilot / the agents**
 
-## Example Prompts (for maintainers / reviewers)
-- "Implement route selection in `agents/routing.py` using distances and travel time; write unit tests for expected outputs." 
-- "Add a `demand_prediction` stub under `agents/` and document its input-output contract in `core/memory.py`."
-- "Create integration tests for the orchestrator flow that mock Gemini responses." 
-- "Refactor `tools/payment_processing.py` to return deterministic typed results and add tests for edge cases."
+Keep prompts focused, include the target file(s) and desired output. Examples:
 
-## Notes & Next Steps
-- This file is a minimal bootstrap. Please confirm:
-  1) preferred testing framework (pytest recommended),
-  2) exact dependency pinning (create `requirements.txt` or `pyproject.toml`), and
-  3) team owners or CODEOWNERS for agent areas.
+- `Audit agents/ride_matching.py for performance and propose two micro-optimizations.`
+- `Add unit tests for colcommute/db/models/commute_post.py that verify seat-matching logic.`
+- `Create an Alembic migration adding origin_place fields; follow style in alembic/versions/20260405_add_origin_place_fields.py.`
+- `Explain how to run the app locally and list required environment variables.`
+
+**Conventions & expectations**
+
+- Use `adk web` for exploratory conversations; make code changes in small, reviewable commits.
+- Use Alembic for schema changes; always review generated revisions before applying.
+- Prefer explicit file paths and short code examples in prompts (the agent uses those to scope changes).
+
+**Next agent customizations to consider**
+
+- `create-prompt.add-tests`: a prompt template to request unit tests for a specified module.
+- `create-agent.migrations-helper`: an agent that scaffolds alembic revision boilerplate and sanity checks.
+- `create-hook.pre-commit-format`: a pre-commit hook to run `black`/`ruff` on staged files.
+
+Link-first principle: prefer linking to existing docs/code rather than embedding large excerpts. If a file is missing or unclear, open a short issue with the requested clarification.
 
 ---
-_Generated and scoped for quick agent onboarding. Keep it short and link-first._
+
+For questions or suggested changes to these instructions, open an issue or propose an edit to this file.
+
+**If you need fixes in the project**
+
+- Describe the failing behavior and include relevant files or stack traces. Example: "Tests failing in `services/ride_services.py`; see traceback attached." 
+- Preferred prompt for Copilot: `Find the bug in <file_or_module> and propose a minimal fix with a short test.`
+- Quick triage steps you can ask the agent to run:
+	- `Run static checks and list errors (ruff/flake8).`
+	- `Run unit tests for <module> and show failing tests.`
+	- `Suggest a minimal code change and corresponding unit test.`
+- If the change touches DB schema, request an Alembic revision: `Create alembic revision to add <column> to <table>, following existing migration style.`
+- For urgent or risky fixes, create an issue referencing the failing flow and assign someone for review before merging.
+
+Use clear, focused prompts and include the smallest reproducible example when possible — the agent will propose fixes and can scaffold tests/migrations for review.

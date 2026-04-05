@@ -1,4 +1,3 @@
-from google.adk.tools import FunctionTool
 from typing import List, Dict, Any
 
 def process_payment(ride_id: str, users: List[str], total_fare: float) -> Dict[str, Any]:
@@ -12,14 +11,12 @@ def process_payment(ride_id: str, users: List[str], total_fare: float) -> Dict[s
     payment_reports = []
 
     for user in users:
-        # Simulate processing; integrate with a payment gateway in production.
         report = {
             "user_id": user,
             "amount": share,
             "status": "paid"
         }
         payment_reports.append(report)
-        print(f"Processed payment of {share} for user {user} in ride {ride_id}.")
 
     return {
         "status": "success",
@@ -29,4 +26,4 @@ def process_payment(ride_id: str, users: List[str], total_fare: float) -> Dict[s
         "payment_reports": payment_reports
     }
 
-process_payment_tool = FunctionTool(func=process_payment)
+process_payment_tool = process_payment  

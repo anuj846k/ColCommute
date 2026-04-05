@@ -286,3 +286,17 @@ def list_commute_posts(destination_substring: Optional[str] = None) -> dict[str,
             rows.append(_commute_post_to_dict(p, ext))
 
         return {"status": "success", "count": len(rows), "commute_posts": rows}
+    
+def register_user(user_id: str) -> dict:
+    """Register a new user if they don't already exist."""
+    with session_scope() as session:
+        existing = _get_user_by_external_id(session, user_id)
+        if existing:
+            return {"status": "already_exists", "user_id": user_id}
+        
+        user = User(
+            external_user_id=user_id.strip()
+        )
+        session.add(user)
+        session.flush()
+        return {"status": "success", "user_id": user_id}
