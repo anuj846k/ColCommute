@@ -1,5 +1,3 @@
-"""Ride matching ADK agent: instructions + tools from ``tools/ride_matching``."""
-
 from __future__ import annotations
 
 from google.adk.agents.llm_agent import Agent
