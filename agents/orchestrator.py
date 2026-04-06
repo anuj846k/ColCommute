@@ -23,14 +23,15 @@ orchestrator: Agent = Agent(
     1. **Matching**: Call ride_matching_agent to register and find carpool partners.
     2. **Routing**: Use routing_agent to get real distance and duration.
     3. **Pricing**: Use pricing_agent to split the fare when the user provides their Uber price.
-    4. **Completion**: Use after_ride_agent for payments and feedback after the ride.
+    4. **Completion**: Use after_ride_agent to start, complete, settle, and collect feedback for a trip.
     
     Orchestration Flow:
     Request -> Matching -> Routing -> Pricing -> After-Ride.
+    Actual trip lifecycle statuses are: confirmed -> in_progress -> completed -> paid.
 
     ## Strict routing rules
     - "post a ride", "I want to commute", "I have seats" → ONLY ride_matching_agent.
     - Pricing is only calculated when the user explicitly provides a fare amount.
-    - after_ride_agent is ONLY called after a trip is fully completed.
+    - after_ride_agent is used for real trip lifecycle actions after a trip has been confirmed.
     """,
 )

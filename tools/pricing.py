@@ -1,24 +1,52 @@
-from typing import Dict, Any
+from __future__ import annotations
 
-def calculate_fare_split(total_fare: float, seats_needed: int) -> Dict[str, Any]:
+from typing import Any
+
+from services.fare_service import calculate_fare_split as service_calculate_fare_split
+
+
+def calculate_fare_split(
+    total_fare: float,
+    seats_needed: int = 0,
+    vacant_seats: int = 0,
+    co_rider_count: int = 0,
+) -> dict[str, Any]:
     """
-    Splits the total Uber/cab fare among riders.
-    total_fare: the price the ride poster paid or expects.
-    seats_needed: number of co-riders splitting the fare.
+    Split a fare for a ride.
+
+    Accepted rider-count inputs:
+    - ``co_rider_count``: explicit number of additional riders
+    - ``seats_needed``: rider count in a request or offer pairing
+    - ``vacant_seats``: rider count when the user phrases it as filled vacant seats
     """
-    if seats_needed <= 0:
-        return {"status": "error", "error_message": "seats_needed must be at least 1."}
-    if total_fare <= 0:
-        return {"status": "error", "error_message": "total_fare must be greater than 0."}
-
-    rider_share = round(total_fare / (seats_needed + 1), 2)
-    driver_share = round(total_fare - (rider_share * seats_needed), 2)
-
-    return {
-        "status": "success",
-        "total_fare": total_fare,
+    positive_inputs = {
+        "co_rider_count": co_rider_count,
         "seats_needed": seats_needed,
-        "per_rider_share": rider_share,
-        "driver_share": driver_share,
-        "summary": f"Total ₹{total_fare} split: each rider pays ₹{rider_share}, driver saves ₹{driver_share}"
+        "vacant_seats": vacant_seats,
     }
+    provided = {key: value for key, value in positive_inputs.items() if value > 0}
+
+    if not provided:
+        return {
+            "status": "error",
+            "error_message": (
+                "Provide at least one of co_rider_count, seats_needed, or vacant_seats."
+            ),
+        }
+
+    if len(set(provided.values())) > 1:
+        return {
+            "status": "error",
+            "error_message": (
+                "Provide only one rider count, or make all provided counts equal."
+            ),
+        }
+
+    riders = next(iter(provided.values()))
+    result = service_calculate_fare_split(total_fare=total_fare, co_rider_count=riders)
+    if result.get("status") != "success":
+        return result
+
+    result["seats_needed"] = riders
+    result["vacant_seats"] = riders
+    return result

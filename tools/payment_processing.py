@@ -1,29 +1,23 @@
-from typing import List, Dict, Any
+from __future__ import annotations
 
-def process_payment(ride_id: str, users: List[str], total_fare: float) -> Dict[str, Any]:
-    """
-    Processes payments for a ride, including fare splitting among multiple users.
-    """
-    if not users:
-        return {"status": "error", "message": "No users provided for payment splitting."}
+from typing import Any
 
-    share = round(total_fare / len(users), 2)
-    payment_reports = []
+from services import ride_services as rs
 
-    for user in users:
-        report = {
-            "user_id": user,
-            "amount": share,
-            "status": "paid"
-        }
-        payment_reports.append(report)
 
-    return {
-        "status": "success",
-        "ride_id": ride_id,
-        "total_fare": total_fare,
-        "split_share": share,
-        "payment_reports": payment_reports
-    }
+def process_payment(ride_id: str, users: list[str], total_fare: float) -> dict[str, Any]:
+    """Persist payment records for a completed trip."""
+    return rs.process_trip_payment(ride_id, users, total_fare)
 
-process_payment_tool = process_payment  
+
+def start_trip(ride_id: str) -> dict[str, Any]:
+    """Mark a confirmed trip as in progress."""
+    return rs.start_trip(ride_id)
+
+
+def complete_trip(ride_id: str) -> dict[str, Any]:
+    """Mark a trip as completed."""
+    return rs.complete_trip(ride_id)
+
+
+process_payment_tool = process_payment

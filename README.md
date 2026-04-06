@@ -1,123 +1,172 @@
-<h1 align="center">ColCommute</h1>
+# <div align="center">ColCommute</div>
 
-<p align="center">
-  A multi-agent system built with the Google Agent Development Kit (ADK) to coordinate collaborative commute planning.
-</p>
+ColCommute is a commute-matching backend for student carpooling. It combines:
 
----
+- Google ADK agents for chat-driven ride coordination
+- FastAPI endpoints for authentication
+- SQLAlchemy + Alembic for persistence
+- Google Maps geocoding and routing for route-aware matching
 
-## Overview
+## What It Does
 
-**ColCommute** uses an **orchestrator** agent (`root_agent` in `colcommute/agent.py`) that delegates to specialists. **Implemented today:**
+ColCommute currently supports:
 
-- **Ride matching agent** — registers **commute posts** (offers or seat requests), finds compatible listings, and can record a **confirmed trip** after mutual agreement (see `agents/ride_matching.py` and `tools/ride_matching.py`).
+- user signup and login with JWT auth
+- fetching the current logged-in user
+- posting commute offers and ride requests
+- matching riders with drivers on the same route, including middle-of-route pickup cases
+- searching for ride offers on a route, with fallback to nearby ride requests
+- confirming trips
+- tracking trip lifecycle: `confirmed -> in_progress -> completed -> paid`
+- persisting payment records and ride feedback
+- fare splitting helpers
 
-**Planned / not wired yet:** routing, pricing, notification agents (stubs are commented in `colcommute/agent.py`).
-
-## Project structure
+## Project Layout
 
 ```text
 ColCommute/
-├── agents/                 # ADK specialist agents (instructions + tool wiring)
-│   └── ride_matching.py    # ride_matching_agent → tools from tools/
-├── tools/                  # ADK function tools (thin wrappers → services/)
-│   └── ride_matching.py    # register_commute_post, find_matches, list, confirm_trip
-├── colcommute/             # ADK app entry: root_agent (orchestrator)
-│   ├── agent.py
-│   └── db/                 # SQLAlchemy models, session, Alembic metadata
-├── services/               # Business logic + Postgres (e.g. ride_services.py)
-├── alembic/                # Migrations
-├── core/                   # Shared config (e.g. llm.py — model name, API key)
-└── .env                    # Secrets (gitignored)
+|-- agents/                  # ADK agents
+|-- api/                     # FastAPI app and auth routes
+|-- alembic/                 # Database migrations
+|-- colcommute/
+|   |-- agent.py             # Root ADK agent
+|   `-- db/                  # SQLAlchemy models and session config
+|-- core/                    # Shared config, including model selection
+|-- services/                # Business logic
+|-- tests/                   # Focused backend tests
+`-- tools/                   # ADK tool wrappers
 ```
 
-Local **ADK dev** data (chat session store, cache) lives under **`colcommute/.adk/`** (e.g. `session.db`) and is **gitignored** — it is not your Postgres app database.
-
-## Getting started
-
-### Prerequisites
+## Requirements
 
 - Python 3.10+
-- `pip install -r requirements.txt` (includes `google-adk`, SQLAlchemy, Alembic, psycopg)
+- PostgreSQL
+- Google API / Gemini access
+- Google Maps API key for geocoding and routing
 
-### Environment
-
-Create `.env` at the repo root:
+Install dependencies:
 
 ```bash
-GOOGLE_API_KEY=YOUR_GEMINI_API_KEY
-DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST:5432/DATABASE_NAME
+pip install -r requirements.txt
 ```
 
-Optional: `DB_CONNECT_TIMEOUT`, `DB_SSLMODE` (e.g. `require` for Cloud SQL). See `colcommute/db/session.py`.
+## Environment
 
-### Run the app (ADK)
+Create a `.env` file in the repo root.
 
-From the **repository root**:
+Minimum useful setup:
+
+```bash
+DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST:5432/DATABASE_NAME
+GOOGLE_API_KEY=YOUR_GEMINI_API_KEY
+GOOGLE_MAPS_API_KEY=YOUR_GOOGLE_MAPS_API_KEY
+JWT_SECRET_KEY=CHANGE_ME
+```
+
+Also supported:
+
+- `GOOGLE_MAP_API_KEY` as an alternative to `GOOGLE_MAPS_API_KEY`
+- `DB_CONNECT_TIMEOUT`
+- `DB_SSLMODE`
+- `COLCOMMUTE_MODEL`
+- `COLCOMMUTE_FALLBACK_MODEL`
+
+Default model behavior:
+
+- primary model: `gemini-2.5-flash-lite`
+- fallback model: `gemini-2.5-flash`
+
+## Database Setup
+
+Run migrations:
+
+```bash
+python -m alembic -c alembic.ini upgrade head
+```
+
+Check current revision:
+
+```bash
+python -m alembic -c alembic.ini current
+```
+
+## Run The Services
+
+### Run FastAPI
+
+```bash
+uvicorn api.main:app --reload
+```
+
+Useful endpoints:
+
+- `GET /health`
+- `POST /auth/signup`
+- `POST /auth/login`
+- `GET /auth/me`
+
+Swagger UI will be available at:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+### Run ADK
 
 ```bash
 adk web
 ```
 
-Open the URL ADK prints (e.g. `http://127.0.0.1:8000`), select the **`colcommute`** app, and chat with **`root_agent`** (or the ride-matching sub-agent if exposed in the UI).
-
-CLI run (alternative):
+Or:
 
 ```bash
 adk run colcommute
 ```
 
-Use the **lowercase** package folder name `colcommute` that contains `agent.py` with `root_agent`.
+## Auth Flow
 
-### Database and migrations (PostgreSQL / Cloud SQL)
+1. Sign up or log in
+2. Save the returned bearer token
+3. Call `GET /auth/me`
+4. Use the returned `external_user_id` when a user-specific ride action needs identity
 
-1. Install deps: `pip install -r requirements.txt`
-2. Set `DATABASE_URL` in `.env`
-3. From repo root:
+## Matching Behavior
 
-   ```bash
-   python -m alembic -c alembic.ini upgrade head
-   python -m alembic -c alembic.ini current
-   ```
+Ride matching uses:
 
-4. New migration (review generated files before applying):
+- destination compatibility by place ID or nearby coordinates
+- route corridor matching, so a rider can be picked up in the middle of a driver route
+- broader location-text fallback, so queries like `Ghaziabad` can match more specific places like `ABESIT Ghaziabad`
+- time bucket compatibility
+- offer/request seat compatibility
 
-   ```bash
-   python -m alembic -c alembic.ini revision --autogenerate -m "describe change"
-   ```
+If no ride offers are found for a route search, the system can also return nearby ride requests as a fallback.
 
-`alembic/env.py` loads `.env`. For Cloud SQL from a laptop, use the [Auth Proxy](https://cloud.google.com/sql/docs/postgres/connect-auth-proxy) or authorized networks.
+## Data Model
 
-### Data model (short)
+- `users`: auth and user identity records
+- `commute_posts`: open ride offers or ride requests
+- `trips`: confirmed rides with lifecycle status
+- `trip_payments`: persisted payment rows
+- `trip_feedback`: persisted ride feedback
 
-| Table | Purpose |
-|-------|--------|
-| **`users`** | Identity via `external_user_id` (optional `college_*` profile fields). |
-| **`commute_posts`** | Open listings: destination place fields, `time_bucket`, `vacant_seats` / `seats_needed`, FK to `users`. |
-| **`trips`** | Confirmed rides: links **offer** and **need** commute posts after agreement (`confirm_trip` tool / service). |
+## Tests
 
-Matching uses **destination** (place id or normalized text), **time bucket**, and seat compatibility — not only profile fields on `users`.
+There are focused tests for:
 
-### Production-oriented flow (later)
+- auth endpoints
+- pricing
+- ride posting and matching
+- trip lifecycle
 
-1. **Client UI**: Places Autocomplete → Place Details → structured `destination_place_id`, label, lat/lng.
-2. **Your API** (e.g. `POST /commute-posts`): auth resolves `user_id`; persist **`commute_posts`**.
-3. Optionally invoke ADK with structured args or session state.
+Some local environments may not have `pytest` installed, but the files are under `tests/` and compile cleanly.
 
-`adk web` is a **chat** surface; a real app should use a proper map/places UI, not the dev chat alone.
+## Notes
 
-### Manual testing
-
-- Ensure **`users`** rows exist for each `external_user_id` you use in chat.
-- Paste real **Place Details**–style fields so the agent can call **`register_commute_post`** with valid ids and coordinates.
-- After two compatible posts exist, **`confirm_trip`** takes **offer** post UUID first, **need** post UUID second.
-
-## Example prompts
-
-You can ask for help posting a ride, finding matches, listing open posts, or confirming after both sides agree — the orchestrator should delegate ride tasks to the ride-matching specialist.
+- Route quality depends on good geocoding data.
+- Obvious out-of-region geocoding results are rejected for India-based searches.
+- Old bad rows already inserted in the database may still need manual cleanup.
 
 ---
 
-<p align="center">
-  Built with Google ADK
-</p>
+Built with Google ADK, FastAPI, SQLAlchemy, and Google Maps.
