@@ -1,16 +1,18 @@
-from typing import Dict, Any
+from __future__ import annotations
 
-def log_feedback(ride_id: str, user_id: str, feedback_score: int, feedback_text: str) -> Dict[str, Any]:
-    """
-    Logs user feedback for a completed ride.
-    """
-    if not 1 <= feedback_score <= 5:
-        return {"status": "error", "message": "feedback_score must be between 1 and 5."}
+from typing import Any
 
-    return {
-        "status": "success",
-        "message": f"Feedback for ride {ride_id} has been logged successfully.",
-        "feedback_id": "feedback_12345"  # replace with real DB write in production
-    }
+from services import ride_services as rs
+
+
+def log_feedback(
+    ride_id: str,
+    user_id: str,
+    feedback_score: int,
+    feedback_text: str,
+) -> dict[str, Any]:
+    """Persist feedback for a trip."""
+    return rs.log_trip_feedback(ride_id, user_id, feedback_score, feedback_text)
+
 
 log_feedback_tool = log_feedback

@@ -68,9 +68,80 @@ def find_matches_for_commute_post(commute_post_id: str) -> dict:
     return rs.find_matches_for_commute_post(commute_post_id)
 
 
-def list_commute_posts(destination_substring: Optional[str] = None) -> dict:
-    """List registered commute posts; filter by destination substring if provided."""
-    return rs.list_commute_posts(destination_substring=destination_substring)
+def register_commute_post_and_find_matches(
+    user_id: str,
+    origin: str,
+    destination: str,
+    time_bucket: str,
+    vacant_seats: int = 0,
+    seats_needed: int = 0,
+) -> dict:
+    """
+    Register a commute post and immediately look up compatible matches using the created post ID.
+    This avoids the model needing to manually extract the returned UUID between tool calls.
+    """
+    post_result = register_commute_post(
+        user_id=user_id,
+        origin=origin,
+        destination=destination,
+        time_bucket=time_bucket,
+        vacant_seats=vacant_seats,
+        seats_needed=seats_needed,
+    )
+    if post_result.get("status") != "success":
+        return post_result
+
+    commute_post = post_result["commute_post"]
+    match_result = rs.find_matches_for_commute_post(commute_post["commute_post_id"])
+    return {
+        "status": "success",
+        "commute_post": commute_post,
+        "match_result": match_result,
+    }
+
+
+def search_commute_posts_for_route(
+    origin: str,
+    destination: str,
+    time_bucket: Optional[str] = None,
+    post_kind: Optional[str] = "offer",
+) -> dict:
+    """
+    Search commute posts for a route, including offers whose path passes near the requested origin.
+    """
+    destination_geo = resolve_place(destination)
+    if destination_geo["status"] != "success":
+        return {"status": "error", "error_message": f"Could not resolve destination: {destination}"}
+
+    origin_geo = resolve_place(origin)
+    if origin_geo["status"] != "success":
+        return {"status": "error", "error_message": f"Could not resolve origin: {origin}"}
+
+    return rs.search_commute_posts_for_route(
+        origin_text=origin,
+        origin_place_id=origin_geo["place_id"],
+        origin_lat=origin_geo["lat"],
+        origin_lng=origin_geo["lng"],
+        destination_text=destination,
+        destination_place_id=destination_geo["place_id"],
+        destination_lat=destination_geo["lat"],
+        destination_lng=destination_geo["lng"],
+        time_bucket=time_bucket,
+        post_kind=post_kind,
+    )
+
+
+def list_commute_posts(
+    destination_substring: Optional[str] = None,
+    origin_substring: Optional[str] = None,
+    post_kind: Optional[str] = None,
+) -> dict:
+    """List registered commute posts; optional filters by origin, destination, and post kind."""
+    return rs.list_commute_posts(
+        destination_substring=destination_substring,
+        origin_substring=origin_substring,
+        post_kind=post_kind,
+    )
 
 
 def confirm_trip(offer_commute_post_id: str, need_commute_post_id: str) -> dict:
