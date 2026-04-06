@@ -6,13 +6,21 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Uuid, func
+import enum
+
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..base import Base
 
 if TYPE_CHECKING:
     from .commute_post import CommutePost
+
+
+class TripStatus(str, enum.Enum):
+    PENDING = "pending"
+    PROGRESSING = "progressing"
+    COMPLETED = "completed"
 
 
 class Trip(Base):
@@ -33,6 +41,9 @@ class Trip(Base):
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    status: Mapped[str] = mapped_column(
+        String(20), default=TripStatus.PENDING.value, nullable=False
     )
 
     offer_post: Mapped["CommutePost"] = relationship(
