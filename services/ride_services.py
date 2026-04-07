@@ -1,14 +1,3 @@
-"""
-Ride matching backed by PostgreSQL (Cloud SQL).
-
-Vacant seats = offers; seats_needed = requests. Matching uses ``destination_place_id``
-when both sides have it, else normalized ``destination`` text.
-
-**CommutePost** = open listing. **Trip** = confirmed ride (two posts linked) — insert via app flow when both agree.
-
-ADK **tools** live under ``tools/`` (e.g. ``tools/ride_matching.py``); this module only exposes plain functions for those tools to call.
-"""
-
 from __future__ import annotations
 
 import uuid
