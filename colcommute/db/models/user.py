@@ -20,6 +20,8 @@ class User(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
     external_user_id: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    email: Mapped[Optional[str]] = mapped_column(String(320), unique=True, nullable=True)
+    password_hash: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
     college_name: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
     college_place_id: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)
     college_lat: Mapped[Optional[float]] = mapped_column(Float, nullable=True)

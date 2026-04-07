@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional
 
 import enum
 
@@ -15,6 +15,8 @@ from ..base import Base
 
 if TYPE_CHECKING:
     from .commute_post import CommutePost
+    from .trip_feedback import TripFeedback
+    from .trip_payment import TripPayment
 
 
 class TripStatus(str, enum.Enum):
@@ -53,6 +55,14 @@ class Trip(Base):
     need_post: Mapped["CommutePost"] = relationship(
         "CommutePost",
         foreign_keys=[need_commute_post_id],
+    )
+    payments: Mapped[List["TripPayment"]] = relationship(
+        "TripPayment",
+        cascade="all, delete-orphan",
+    )
+    feedback_entries: Mapped[List["TripFeedback"]] = relationship(
+        "TripFeedback",
+        cascade="all, delete-orphan",
     )
 
     __table_args__ = (

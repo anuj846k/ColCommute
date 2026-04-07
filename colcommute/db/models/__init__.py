@@ -6,7 +6,9 @@ A finalized ``Trip`` links an offer post and a need post once both parties agree
 """
 
 from .commute_post import CommutePost
+from .trip_feedback import TripFeedback
+from .trip_payment import TripPayment
 from .trip import Trip
 from .user import User
 
-__all__ = ["User", "CommutePost", "Trip"]
+__all__ = ["User", "CommutePost", "Trip", "TripPayment", "TripFeedback"]
