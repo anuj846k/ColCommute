@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 import enum
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, String, Uuid, func
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..base import Base
@@ -47,9 +47,12 @@ class Trip(Base):
     status: Mapped[str] = mapped_column(
         String(20), default=TripStatus.PENDING.value, nullable=False
     )
+<<<<<<< HEAD
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="confirmed")
     started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+=======
+>>>>>>> 92b4be623ac5c6c51e0ee087ce1db3cd9f6aeb4e
 
     offer_post: Mapped["CommutePost"] = relationship(
         "CommutePost",
