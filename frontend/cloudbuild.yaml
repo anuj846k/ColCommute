@@ -26,7 +26,6 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
-      # Specify the port since it defaults to 8080
       - '--port'
       - '3000'
 
@@ -34,7 +33,7 @@ images:
   - 'gcr.io/$PROJECT_ID/colcommute-frontend'
 
 substitutions:
-  _NEXT_PUBLIC_API_URL: 'https://backend-url.a.run.app'
+  _NEXT_PUBLIC_API_URL: 'CHANGE_ME'
 
 options:
   logging: CLOUD_LOGGING_ONLY

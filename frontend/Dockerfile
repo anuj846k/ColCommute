@@ -8,7 +8,9 @@ RUN apk add --no-cache libc6-compat
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
+# Copy lockfiles and package.json
 COPY package.json pnpm-lock.yaml* package-lock.json* ./
+# We allow lockfile update if needed due to potential sync issues in different envs
 RUN pnpm install
 
 # Stage 2: Rebuild the source code

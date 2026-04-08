@@ -1,10 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 
-# Exit immediately if a command exits with a non-zero status
-set -e
+# Run database migrations
+echo "Running alembic migrations..."
+alembic upgrade head
 
-echo "Running database migrations..."
-python -m alembic upgrade head
-
-echo "Starting server..."
-exec uvicorn api.main:app --host 0.0.0.0 --port 8080
+# Start the application
+echo "Starting Gunicorn server..."
+exec gunicorn --bind :8080 --workers 1 --worker-class uvicorn.workers.UvicornWorker api.main:app

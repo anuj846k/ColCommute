@@ -1,28 +1,25 @@
-FROM python:3.12-slim
+FROM python:3.11-slim
 
-WORKDIR /app
-
-# Install system dependencies for psycopg/postgres connection
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
-# Ensure psycopg binary is installed for database connectivity
-RUN pip install --no-cache-dir "psycopg[binary]"
+WORKDIR /app
 
-# Copy application code
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the backend code
 COPY . .
 
-# Cloud Run expects the app to listen on port 8080 by default
-EXPOSE 8080
-
-# Make startup script executable
+# Copy and make the startup script executable
 RUN chmod +x start.sh
 
-# Start the application via the startup script to handle migrations
-CMD ["./start.sh"]
+# The application runs on 8080 by default in Cloud Run
+EXPOSE 8080
+
+# Use the startup script to run migrations and start the server
+ENTRYPOINT ["./start.sh"]
