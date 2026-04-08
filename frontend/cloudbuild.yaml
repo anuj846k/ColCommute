@@ -5,10 +5,12 @@ steps:
            '-t', 'gcr.io/$PROJECT_ID/colcommute-frontend', 
            '--build-arg', 'NEXT_PUBLIC_API_URL=${_NEXT_PUBLIC_API_URL}',
            '.']
+    dir: 'frontend'
 
   # Push the image to Artifact Registry (GCR)
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/colcommute-frontend']
+    dir: 'frontend'
 
   # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
