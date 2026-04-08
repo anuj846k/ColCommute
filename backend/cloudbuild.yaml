@@ -2,10 +2,12 @@ steps:
   # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/$PROJECT_ID/colcommute-backend', '.']
+    dir: 'backend'
 
   # Push the image to Artifact Registry (GCR)
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/colcommute-backend']
+    dir: 'backend'
 
   # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
