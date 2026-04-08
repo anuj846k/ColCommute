@@ -47,6 +47,9 @@ class Trip(Base):
     status: Mapped[str] = mapped_column(
         String(20), default=TripStatus.PENDING.value, nullable=False
     )
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="confirmed")
+    started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     offer_post: Mapped["CommutePost"] = relationship(
         "CommutePost",
