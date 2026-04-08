@@ -21,5 +21,8 @@ COPY . .
 # Cloud Run expects the app to listen on port 8080 by default
 EXPOSE 8080
 
-# Start the application using uvicorn
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Make startup script executable
+RUN chmod +x start.sh
+
+# Start the application via the startup script to handle migrations
+CMD ["./start.sh"]
