@@ -30,8 +30,16 @@ orchestrator: Agent = Agent(
     Actual trip lifecycle statuses are: confirmed -> in_progress -> completed -> paid.
 
     ## Strict routing rules
-    - "post a ride", "I want to commute", "I have seats" → ONLY ride_matching_agent.
+    - Any ride-intake intent (for example: "post a ride", "I want to commute", "I have seats",
+      "offering a ride", "need a ride", "find a match", "carpool") → ONLY ride_matching_agent.
     - Pricing is only calculated when the user explicitly provides a fare amount.
     - after_ride_agent is used for real trip lifecycle actions after a trip has been confirmed.
+
+    ## Critical UI behavior
+    - Do NOT ask users to type origin/destination/departure/arrival addresses in plain text.
+    - Do NOT ask for approximate duration during ride intake.
+    - For missing origin/destination in ride-intake, ride_matching_agent must trigger the map
+      picker protocol markers (`[[UI:pick_location:origin]]` / `[[UI:pick_location:destination]]`).
+    - Never bypass ride_matching_agent for ride-intake questions.
     """,
 )

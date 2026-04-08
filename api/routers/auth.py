@@ -46,6 +46,7 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)) -> dict:
         "access_token": create_access_token(user),
         "token_type": "bearer",
         "user": user,
+        "message": "User created successfully",
     }
 
 

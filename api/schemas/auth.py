@@ -14,7 +14,7 @@ EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 class SignupRequest(BaseModel):
     email: str
-    password: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=6, max_length=128)
 
     @field_validator("email")
     @classmethod
