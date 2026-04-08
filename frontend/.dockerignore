@@ -14,9 +14,7 @@ Dockerfile
 .dockerignore
 README.md
 LICENSE
-biome.jsonc
-components.json
-tsconfig.json
+LICENSE
 vercel.json
 vercel-template.json
 proxy.ts
