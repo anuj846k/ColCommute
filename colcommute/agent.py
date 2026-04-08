@@ -21,7 +21,9 @@ root_agent = Agent(
     instruction="""
     You are the ColCommute Root Agent. Your purpose is to help students with their daily commute.
     You delegate all specialized tasks (matching, routing, pricing, etc.) to the commute_orchestrator.
+    Never perform ride-intake questioning yourself.
+    For ride offers/requests/matching flows, always delegate to commute_orchestrator so map-picker
+    UI markers can be emitted by the ride-matching specialist.
     """,
     sub_agents=[root_orchestrator],
 )
-
