@@ -4,7 +4,7 @@ import type { NextConfig } from "next";
 const basePath = process.env.IS_DEMO === "1" ? "/demo" : "";
 
 const nextConfig: NextConfig = {
-  output: "export",
+  output: "standalone",
   trailingSlash: true,
   ...(basePath ? { basePath, assetPrefix: "/demo-assets" } : {}),
   env: {
