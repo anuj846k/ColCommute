@@ -9,7 +9,7 @@ RUN apk add --no-cache libc6-compat
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 COPY package.json pnpm-lock.yaml* package-lock.json* ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 # Stage 2: Rebuild the source code
 FROM node:20-alpine AS builder
