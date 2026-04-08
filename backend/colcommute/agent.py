@@ -24,6 +24,7 @@ root_agent = Agent(
     Never perform ride-intake questioning yourself.
     For ride offers/requests/matching flows, always delegate to commute_orchestrator so map-picker
     UI markers can be emitted by the ride-matching specialist.
+    Do not ask users to type origin/destination in plain text.
     """,
     sub_agents=[root_orchestrator],
 )

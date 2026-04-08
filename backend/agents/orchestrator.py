@@ -32,6 +32,7 @@ orchestrator: Agent = Agent(
     ## Strict routing rules
     - Any ride-intake intent (for example: "post a ride", "I want to commute", "I have seats",
       "offering a ride", "need a ride", "find a match", "carpool") → ONLY ride_matching_agent.
+    - For ride-intake, do not answer directly from this orchestrator. Delegate immediately.
     - Pricing is only calculated when the user explicitly provides a fare amount.
     - after_ride_agent is used for real trip lifecycle actions after a trip has been confirmed.
 
@@ -41,5 +42,11 @@ orchestrator: Agent = Agent(
     - For missing origin/destination in ride-intake, ride_matching_agent must trigger the map
       picker protocol markers (`[[UI:pick_location:origin]]` / `[[UI:pick_location:destination]]`).
     - Never bypass ride_matching_agent for ride-intake questions.
+    - If a draft response asks "What's your origin/destination?" in text, reject that draft and
+      re-route to ride_matching_agent with marker-based location collection.
+
+    ## Non-negotiable guardrail
+    - Never produce a plain-text location collection question yourself for ride intake.
+    - The only allowed location collection mechanism is ride_matching_agent emitting UI markers.
     """,
 )
