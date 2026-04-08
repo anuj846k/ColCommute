@@ -1,7 +1,17 @@
 import type { LanguageModelV3GenerateResult } from "@ai-sdk/provider";
 import { simulateReadableStream } from "ai";
 import { MockLanguageModelV3 } from "ai/test";
-import { getResponseChunksByPrompt } from "@/tests/prompts/utils";
+// Mock getResponseChunksByPrompt since @/tests/prompts/utils is missing
+const getResponseChunksByPrompt = (prompt: any, isReasoning = false) => [
+  { id: "1", type: "text-start" as const },
+  { id: "1", type: "text-delta" as const, delta: `Mock response for: ${JSON.stringify(prompt)}` },
+  { id: "1", type: "text-end" as const },
+  {
+    type: "finish" as const,
+    finishReason: mockFinishReason,
+    usage: mockUsage,
+  },
+];
 
 const mockUsage = {
   inputTokens: { total: 10, noCache: 10, cacheRead: 0, cacheWrite: 0 },
